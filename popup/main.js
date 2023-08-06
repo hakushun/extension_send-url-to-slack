@@ -1,14 +1,12 @@
 /**
- * token
- */
-const token = "";
-/**
  * payload
+ * @see https://api.slack.com/methods/chat.postMessage
  */
 const payload = {
+  token: "",
   channel: "",
   username: "",
-  icon: "",
+  icon_url: "",
 };
 
 async function getCurrentTab() {
@@ -32,14 +30,13 @@ function insertTitleAndUrl({ title, url }) {
   urlEl.innerText = url;
 }
 
-async function sentToSlack({ title, url }) {
+async function sentToSlack({ payload, title, url }) {
+  const formData = new FormData();
+  Object.entries(payload).map(([key, value]) => formData.set(key, value));
+  formData.set("text", `${title}\n${url}`);
   await fetch("https://api.slack.com/api/chat.postMessage", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: "Bearer " + token,
-    },
-    body: JSON.stringify({ ...payload, text: `${title}\n${url}` }),
+    body: formData,
   });
 }
 
@@ -56,7 +53,7 @@ window.addEventListener("load", async () => {
 document.getElementById("send").addEventListener("click", async () => {
   try {
     const { title, url } = await getTitleAndUrl();
-    await sentToSlack({ title, url });
+    await sentToSlack({ payload, title, url });
   } catch (error) {
     window.alert("Something wrong");
     throw new Error(error);
